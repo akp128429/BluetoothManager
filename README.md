@@ -30,7 +30,7 @@ Scanning does not reveal all devices or which other phone an accessory is connec
 Manifest/XML and workflow structure checked during creation. APK compilation and physical Bluetooth tests were not possible in the creation environment because the Android SDK and Gradle were unavailable. Run the workflow and test permission denial, Bluetooth off, pairing rejection and a real accessory before relying on it.
 
 ## Hosting
-Render cannot run an Android APK or control a phone's Bluetooth. It could host a separate APK download page after a build; no server is needed by this app. No GitHub repository or Render service was created by this package.
+Render cannot run an Android APK or control a phone's Bluetooth. It could host a separate APK download page after a build; no server is needed by this app. Source is published in https://github.com/akp128429/BluetoothManager. No Render service is required.
 
 ## References
 https://developer.android.com/develop/connectivity/bluetooth/bt-permissions
