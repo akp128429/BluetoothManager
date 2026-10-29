@@ -25,7 +25,7 @@ public class MainActivity extends Activity {
             && checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)==PackageManager.PERMISSION_GRANTED;
     }
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
-        public void onReceive(Context context, Intent intent) {
+        public void onReceive(Context context, Intent intent) {try {
             if (!allowed()) return;
             String action=intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action) || BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) {
@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
                 if(BluetoothDevice.ACTION_BOND_STATE_CHANGED.equals(action)) status.setText("Pairing status updated. Use Bluetooth settings to connect.");
             } else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED.equals(action)) status.setText("Scan finished · "+devices.size()+" devices listed");
             else if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) refresh();
-        }
+        } catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
     };
     public void onCreate(Bundle state) {
         super.onCreate(state);
@@ -66,13 +66,13 @@ public class MainActivity extends Activity {
     }
     private TextView text(String s,int size){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(Color.WHITE);t.setPadding(0,12,0,12);return t;}
     private void button(LinearLayout box,String title,Runnable action){Button b=new Button(this);b.setText(title);b.setAllCaps(false);box.addView(b);b.setOnClickListener(v->{try{action.run();}catch(SecurityException e){status.setText("Nearby devices permission is required.");}catch(Exception e){status.setText("Action unavailable. Try Android Bluetooth settings.");}});}
-    private boolean ready(){if(adapter==null){status.setText("Bluetooth unavailable.");return false;}if(!allowed()){status.setText("Tap Allow access first.");return false;}if(!adapter.isEnabled()){status.setText("Bluetooth is off. Tap Enable Bluetooth.");return false;}return true;}
-    private void enable(){if(adapter==null)return;if(!adapter.isEnabled())startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));else refresh();}
-    private void refresh(){if(!ready())return;stop();devices.clear();for(BluetoothDevice d:adapter.getBondedDevices())devices.put(d.getAddress(),d);render();status.setText(devices.size()+" paired devices · connection status not inferred");}
-    private void scan(){if(!ready())return;stop();for(BluetoothDevice d:adapter.getBondedDevices())devices.put(d.getAddress(),d);render();status.setText(adapter.startDiscovery()?"Scanning discoverable devices…":"Could not start scan. Wait and try again.");}
-    private void stop(){if(adapter!=null&&allowed()&&adapter.isDiscovering())adapter.cancelDiscovery();}
+    private boolean ready(){try {if(adapter==null){status.setText("Bluetooth unavailable.");return false;}if(!allowed()){status.setText("Tap Allow access first.");return false;}if(!adapter.isEnabled()){status.setText("Bluetooth is off. Tap Enable Bluetooth.");return false;}return true;} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); return false; }}
+    private void enable(){try {if(adapter==null||!allowed())return;if(!adapter.isEnabled())startActivity(new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE));else refresh();} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
+    private void refresh(){try {if(!ready())return;stop();devices.clear();for(BluetoothDevice d:adapter.getBondedDevices())devices.put(d.getAddress(),d);render();status.setText(devices.size()+" paired devices · connection status not inferred");} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
+    private void scan(){try {if(!ready())return;stop();for(BluetoothDevice d:adapter.getBondedDevices())devices.put(d.getAddress(),d);render();status.setText(adapter.startDiscovery()?"Scanning discoverable devices…":"Could not start scan. Wait and try again.");} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
+    private void stop(){try {if(adapter!=null&&allowed()&&adapter.isDiscovering())adapter.cancelDiscovery();} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
     private void settings(){stop();startActivity(new Intent(Settings.ACTION_BLUETOOTH_SETTINGS));}
-    private void render(){
+    private void render(){try {
         if(rows==null||!allowed())return;
         rows.removeAllViews();String query=search.getText().toString().trim().toLowerCase(Locale.ROOT);int count=0;
         for(BluetoothDevice d:devices.values()){
@@ -91,9 +91,9 @@ public class MainActivity extends Activity {
                 }).setNegativeButton("Cancel",null).show());
         }
         if(count==0)rows.addView(text(query.isEmpty()?"No devices listed. Refresh paired devices or scan nearby.":"No matching device. Try scanning with the accessory in pairing mode.",16));
-    }
+    } catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
     public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(allowed())enable();else status.setText("Permission denied. You can retry or grant Nearby devices in app settings.");}
-    protected void onResume(){super.onResume();if(adapter!=null&&allowed()){if(adapter.isEnabled())refresh();else status.setText("Bluetooth is off. Tap Enable Bluetooth.");}}
+    protected void onResume(){try {super.onResume();if(adapter!=null&&allowed()){if(adapter.isEnabled())refresh();else status.setText("Bluetooth is off. Tap Enable Bluetooth.");}} catch (SecurityException e) { if(status!=null) status.setText("Nearby devices permission changed. Grant access and retry."); }}
     protected void onPause(){stop();super.onPause();}
     protected void onDestroy(){if(registered)unregisterReceiver(receiver);super.onDestroy();}
 }
