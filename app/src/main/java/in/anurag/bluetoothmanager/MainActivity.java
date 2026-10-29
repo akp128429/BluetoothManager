@@ -41,7 +41,7 @@ public class MainActivity extends Activity {
         BluetoothManager manager=getSystemService(BluetoothManager.class);
         adapter=manager==null ? null : manager.getAdapter();
         ScrollView scroll=new ScrollView(this);
-        LinearLayout body=new LinearLayout(this); body.setOrientation(1); body.setPadding(28,48,28,28); body.setBackgroundColor(Color.rgb(13,23,39));
+        LinearLayout body=new LinearLayout(this); body.setOrientation(LinearLayout.VERTICAL); body.setPadding(28,48,28,28); body.setBackgroundColor(Color.rgb(13,23,39));
         scroll.addView(body);setContentView(scroll);
         TextView title=text("Bluetooth Manager",28);body.addView(title);
         body.addView(text("Your devices, within reach",16));
@@ -56,7 +56,7 @@ public class MainActivity extends Activity {
         button(body,"Open Bluetooth settings",this::settings);
         search=new EditText(this);search.setSingleLine(true);search.setTextColor(Color.WHITE);search.setHintTextColor(Color.LTGRAY);search.setHint("Search name or address · IPL08");body.addView(search);
         search.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int st,int c,int a){}public void onTextChanged(CharSequence s,int st,int b,int c){render();}public void afterTextChanged(Editable e){}});
-        rows=new LinearLayout(this); rows.setOrientation(1); body.addView(rows);
+        rows=new LinearLayout(this); rows.setOrientation(LinearLayout.VERTICAL); body.addView(rows);
         body.addView(text("Paired does not mean connected. Audio connection and disconnection are managed in Android Bluetooth settings. Nearby devices may be hidden unless in pairing mode.",14));
         IntentFilter filter=new IntentFilter();filter.addAction(BluetoothDevice.ACTION_FOUND);filter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);filter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
         if(Build.VERSION.SDK_INT>=33) registerReceiver(receiver,filter,Context.RECEIVER_EXPORTED);else registerReceiver(receiver,filter);
@@ -79,7 +79,7 @@ public class MainActivity extends Activity {
             String name=d.getName();if(name==null||name.isEmpty())name="Unnamed device";
             String address=d.getAddress();if(!(name+" "+address).toLowerCase(Locale.ROOT).contains(query))continue;
             count++;final String label=name;
-            LinearLayout card=new LinearLayout(this);card.setOrientation(1);card.setPadding(16,10,16,18);rows.addView(card);
+            LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setPadding(16,10,16,18);rows.addView(card);
             card.addView(text(name,20));
             String bond=d.getBondState()==BluetoothDevice.BOND_BONDED?"Paired with this phone":d.getBondState()==BluetoothDevice.BOND_BONDING?"Pairing…":"Discovered nearby";
             card.addView(text(address+"\n"+bond,14));
